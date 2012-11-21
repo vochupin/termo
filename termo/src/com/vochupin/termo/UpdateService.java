@@ -16,6 +16,8 @@ import android.widget.Toast;
 public class UpdateService extends Service {
 
 	private static final String LOG = "de.vogella.android.widget.example";
+	private static final String TERMO_SERVER = "http://termo.tomsk.ru/";
+	private static final String TERMO_JSON_INFORMER = "data.json";
 
 	@Override
 	public void onStart(Intent intent, int startId) {
@@ -31,15 +33,14 @@ public class UpdateService extends Service {
 		Log.w(LOG, "From Intent" + String.valueOf(allWidgetIds.length));
 		Log.w(LOG, "Direct" + String.valueOf(allWidgetIds2.length));
 
+		
+		Client client = new Client(TERMO_SERVER);
+		String temp = client.getBaseURI(TERMO_JSON_INFORMER);
+		
 		for (int widgetId : allWidgetIds) {
-			// Create some random data
-			int number = (new Random().nextInt(100));
 
 			RemoteViews remoteViews = new RemoteViews(this.getApplicationContext().getPackageName(), R.layout.main);
-			Log.w("WidgetExample", String.valueOf(number));
-			// Set the text
-			remoteViews.setTextViewText(R.id.tvOutput,
-					"Random: " + String.valueOf(number));
+			remoteViews.setTextViewText(R.id.tvOutput, temp);
 
 			// Register an onClickListener
 			Intent clickIntent = new Intent(this.getApplicationContext(),

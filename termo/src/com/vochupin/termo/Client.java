@@ -9,6 +9,8 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
+import android.util.Log;
+
 public class Client {
 
     private String server;
@@ -22,7 +24,7 @@ public class Client {
     }
 
     public String getBaseURI(String str) {
-        String result = "";
+        String result = "No connection";
         try {
             DefaultHttpClient httpClient = new DefaultHttpClient();
             HttpGet getRequest = new HttpGet(getBase() + str);
@@ -30,6 +32,7 @@ public class Client {
             HttpResponse response = httpClient.execute(getRequest);
             result = getResult(response).toString();
             httpClient.getConnectionManager().shutdown();
+            Log.i("", result);
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
