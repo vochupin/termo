@@ -2,6 +2,9 @@ package com.vochupin.termo;
 
 import java.util.Random;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -30,17 +33,28 @@ public class UpdateService extends Service {
 
 		ComponentName thisWidget = new ComponentName(getApplicationContext(),TermoWidget.class);
 		int[] allWidgetIds2 = appWidgetManager.getAppWidgetIds(thisWidget);
-		Log.w(LOG, "From Intent" + String.valueOf(allWidgetIds.length));
-		Log.w(LOG, "Direct" + String.valueOf(allWidgetIds2.length));
-
+		Log.w(LOG, "From Intent " + String.valueOf(allWidgetIds.length));
+		Log.w(LOG, "Direct " + String.valueOf(allWidgetIds2.length));
 		
 		Client client = new Client(TERMO_SERVER);
-		String temp = client.getBaseURI(TERMO_JSON_INFORMER);
+		String temperature = client.getBaseURI(TERMO_JSON_INFORMER);
+		
+		try {
+			JSONObject jobj = new JSONObject(temperature);
+			
+			temperature = "\nt = " + jobj.getDouble("current_temp");
+			
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		temperature = System.currentTimeMillis() + " " +  temperature;
 		
 		for (int widgetId : allWidgetIds) {
 
 			RemoteViews remoteViews = new RemoteViews(this.getApplicationContext().getPackageName(), R.layout.main);
-			remoteViews.setTextViewText(R.id.tvOutput, temp);
+			remoteViews.setTextViewText(R.id.tvOutput, temperature);
 
 			// Register an onClickListener
 			Intent clickIntent = new Intent(this.getApplicationContext(),
@@ -53,6 +67,7 @@ public class UpdateService extends Service {
 			PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, clickIntent,
 					PendingIntent.FLAG_UPDATE_CURRENT);
 			remoteViews.setOnClickPendingIntent(R.id.tvOutput, pendingIntent);
+			Log.i(LOG, "wId:" + widgetId + " " + remoteViews);
 			appWidgetManager.updateAppWidget(widgetId, remoteViews);
 		}
 		stopSelf();
