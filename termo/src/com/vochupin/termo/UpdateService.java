@@ -6,12 +6,15 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 public class UpdateService extends Service {
+
 	private static final String LOG = "de.vogella.android.widget.example";
 
 	@Override
@@ -32,9 +35,7 @@ public class UpdateService extends Service {
 			// Create some random data
 			int number = (new Random().nextInt(100));
 
-			RemoteViews remoteViews = new RemoteViews(this
-					.getApplicationContext().getPackageName(),
-					R.layout.main);
+			RemoteViews remoteViews = new RemoteViews(this.getApplicationContext().getPackageName(), R.layout.main);
 			Log.w("WidgetExample", String.valueOf(number));
 			// Set the text
 			remoteViews.setTextViewText(R.id.tvOutput,
