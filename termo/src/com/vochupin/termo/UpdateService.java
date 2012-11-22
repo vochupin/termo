@@ -11,68 +11,82 @@ import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
 public class UpdateService extends Service {
 
-	private static final String LOG = "de.vogella.android.widget.example";
+	private static final String TAG = UpdateService.class.getSimpleName();
 	private static final String TERMO_SERVER = "http://termo.tomsk.ru/";
 	private static final String TERMO_JSON_INFORMER = "data.json";
 
 	@Override
 	public void onStart(Intent intent, int startId) {
-		Log.i(LOG, "Called");
-		// Create some random data
+		Log.i(TAG, "Update service started.");
 
 		AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this.getApplicationContext());
-
 		int[] allWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+		Log.w(TAG, "Number of ids to update (from intent): " + String.valueOf(allWidgetIds.length));
 
-		ComponentName thisWidget = new ComponentName(getApplicationContext(),TermoWidget.class);
-		int[] allWidgetIds2 = appWidgetManager.getAppWidgetIds(thisWidget);
-		Log.w(LOG, "From Intent " + String.valueOf(allWidgetIds.length));
-		Log.w(LOG, "Direct " + String.valueOf(allWidgetIds2.length));
-		
+		//Request JSON with temperature
 		Client client = new Client(TERMO_SERVER);
-		String temperature = client.getBaseURI(TERMO_JSON_INFORMER);
+		String tempJson = client.getTemperatureJson(TERMO_JSON_INFORMER);
 		
-		try {
-			JSONObject jobj = new JSONObject(temperature);
-			
-			temperature = "\nt = " + jobj.getDouble("current_temp");
-			
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		String temperature = parseTermoResponse(tempJson);
 		
-		temperature = System.currentTimeMillis() + " " +  temperature;
+		updateWidgets(appWidgetManager, allWidgetIds, temperature);
 		
-		for (int widgetId : allWidgetIds) {
-
-			RemoteViews remoteViews = new RemoteViews(this.getApplicationContext().getPackageName(), R.layout.main);
-			remoteViews.setTextViewText(R.id.tvOutput, temperature);
-
-			// Register an onClickListener
-			Intent clickIntent = new Intent(this.getApplicationContext(),
-					TermoWidget.class);
-
-			clickIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-			clickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,
-					allWidgetIds);
-
-			PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, clickIntent,
-					PendingIntent.FLAG_UPDATE_CURRENT);
-			remoteViews.setOnClickPendingIntent(R.id.tvOutput, pendingIntent);
-			Log.i(LOG, "wId:" + widgetId + " " + remoteViews);
-			appWidgetManager.updateAppWidget(widgetId, remoteViews);
-		}
 		stopSelf();
 
 		super.onStart(intent, startId);
+	}
+
+	private void updateWidgets(AppWidgetManager appWidgetManager, int[] allWidgetIds, String temperature) {
+		for (int widgetId : allWidgetIds) {
+			RemoteViews remoteViews = new RemoteViews(this.getApplicationContext().getPackageName(), R.layout.main);
+			remoteViews.setTextViewText(R.id.tvOutput, temperature);
+			
+//			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+//		    String value = prefs.getString("", null);
+//		    if(value != null)
+//		    {
+//		        // do stuff
+//		    }
+
+			enableUpdateOnClick(allWidgetIds, remoteViews);
+
+			appWidgetManager.updateAppWidget(widgetId, remoteViews);
+		}
+	}
+
+	private void enableUpdateOnClick(int[] allWidgetIds,	RemoteViews remoteViews) {
+		Intent clickIntent = new Intent(this.getApplicationContext(), TermoWidget.class);
+
+		clickIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+		clickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, allWidgetIds);
+
+		PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, clickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		remoteViews.setOnClickPendingIntent(R.id.tvOutput, pendingIntent);
+	}
+
+	private String parseTermoResponse(String temperature) {
+		String retval;
+		try {
+			JSONObject jobj = new JSONObject(temperature);
+			
+			retval = "t° = " + jobj.getDouble("current_temp");
+			retval += "     Δt = " + jobj.getString("current_temp_change");
+			retval += "\n" + jobj.getString("current_date") + " " + jobj.getString("current_time");
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+			retval = "JSON error.";
+		}
+		return retval;
 	}
 
 	@Override
