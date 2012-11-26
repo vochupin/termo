@@ -1,17 +1,12 @@
 package com.vochupin.termo;
 
-import java.util.Random;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -19,10 +14,8 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import 	android.os.Process;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.RemoteViews;
-import android.widget.Toast;
 
 public class UpdateService extends Service {
 
