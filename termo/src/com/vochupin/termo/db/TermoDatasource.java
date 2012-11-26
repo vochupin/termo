@@ -1,6 +1,7 @@
 package com.vochupin.termo.db;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import android.content.ContentValues;
@@ -31,16 +32,16 @@ public class TermoDatasource {
 		dbHelper.close();
 	}
 
-	public TermoSample createComment(String comment) {
+	public TermoSample createSample(float temperature, int trend, Date sampleTime) {
 		ContentValues values = new ContentValues();
-		values.put(TermoSQLiteHelper.COLUMN_TEMPERATURE, comment);
-		long insertId = database.insert(TermoSQLiteHelper.TABLE_SAMPLES, null,
-				values);
+		values.put(TermoSQLiteHelper.COLUMN_TEMPERATURE, temperature);
+		values.put(TermoSQLiteHelper.COLUMN_TREND, trend);
+		values.put(TermoSQLiteHelper.COLUMN_TEMPERATURE, sampleTime.toGMTString());
+		long insertId = database.insert(TermoSQLiteHelper.TABLE_SAMPLES, null, values);
 		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,
-				allColumns, TermoSQLiteHelper.COLUMN_ID + " = " + insertId, null,
-				null, null, null);
+				allColumns, TermoSQLiteHelper.COLUMN_ID + " = " + insertId, null, null, null, null);
 		cursor.moveToFirst();
-		TermoSample newComment = cursorToComment(cursor);
+		TermoSample newComment = sampleFromCursor(cursor);
 		cursor.close();
 		return newComment;
 	}
@@ -54,12 +55,11 @@ public class TermoDatasource {
 	public List<TermoSample> getAllComments() {
 		List<TermoSample> comments = new ArrayList<TermoSample>();
 
-		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,
-				allColumns, null, null, null, null, null);
+		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,	allColumns, null, null, null, null, null);
 
 		cursor.moveToFirst();
 		while (!cursor.isAfterLast()) {
-			TermoSample comment = cursorToComment(cursor);
+			TermoSample comment = sampleFromCursor(cursor);
 			comments.add(comment);
 			cursor.moveToNext();
 		}
@@ -68,7 +68,7 @@ public class TermoDatasource {
 		return comments;
 	}
 
-	private TermoSample cursorToComment(Cursor cursor) {
+	private TermoSample sampleFromCursor(Cursor cursor) {
 		TermoSample comment = new TermoSample();
 		comment.setId(cursor.getLong(0));
 		comment.setTemperature(cursor.getFloat(1));
