@@ -51,12 +51,13 @@ public class UpdateService extends Service {
 			Client client = new Client(TERMO_SERVER);
 			String tempJson = client.getTemperatureJson(TERMO_JSON_INFORMER);
 			
-			String temperature = parseTermoResponse(tempJson);
-			
-			updateWidgets(appWidgetManager, allWidgetIds, temperature);
+			if(Client.NO_CONNECTION.equals(tempJson) == false){
+				String temperature = parseTermoResponse(tempJson);
+				updateWidgets(appWidgetManager, allWidgetIds, temperature);
+			}
 
 			stopSelf(msg.arg1);
-			Log.i(TAG, "handler done"); 
+			Log.i(TAG, "handler done");
 		}
 	}
 

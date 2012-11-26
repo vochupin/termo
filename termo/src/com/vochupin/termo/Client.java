@@ -14,6 +14,7 @@ import android.util.Log;
 public class Client {
 
     private static final String TAG = Client.class.getSimpleName();
+	public static final String NO_CONNECTION = "No connection";
 	private String server;
 
     public Client(String server) {
@@ -25,7 +26,7 @@ public class Client {
     }
 
     public String getTemperatureJson(String str) {
-        String result = "No connection";
+        String result = NO_CONNECTION;
         try {
             DefaultHttpClient httpClient = new DefaultHttpClient();
             HttpGet getRequest = new HttpGet(getServer() + str);
