@@ -1,5 +1,7 @@
 package com.vochupin.termo.db;
 
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -32,35 +34,35 @@ public class TermoDatasource {
 		dbHelper.close();
 	}
 
-	public TermoSample createSample(float temperature, int trend, Date sampleTime) {
+	public TermoSample createSample(float temperature, int trend, Date sampleTime) throws ParseException {
 		ContentValues values = new ContentValues();
 		values.put(TermoSQLiteHelper.COLUMN_TEMPERATURE, temperature);
 		values.put(TermoSQLiteHelper.COLUMN_TREND, trend);
-		values.put(TermoSQLiteHelper.COLUMN_TEMPERATURE, sampleTime.toGMTString());
+		values.put(TermoSQLiteHelper.COLUMN_TEMPERATURE, DateFormat.getInstance().format(sampleTime.toGMTString()));
 		long insertId = database.insert(TermoSQLiteHelper.TABLE_SAMPLES, null, values);
 		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,
 				allColumns, TermoSQLiteHelper.COLUMN_ID + " = " + insertId, null, null, null, null);
 		cursor.moveToFirst();
-		TermoSample newComment = sampleFromCursor(cursor);
+		TermoSample newSample = sampleFromCursor(cursor);
 		cursor.close();
-		return newComment;
+		return newSample;
 	}
 
-	public void deleteComment(TermoSample comment) {
-		long id = comment.getId();
+	public void deleteSample(TermoSample sample) {
+		long id = sample.getId();
 		System.out.println("Sample deleted with id: " + id);
 		database.delete(TermoSQLiteHelper.TABLE_SAMPLES, TermoSQLiteHelper.COLUMN_ID + " = " + id, null);
 	}
 
-	public List<TermoSample> getAllComments() {
+	public List<TermoSample> getAllSamples() throws ParseException {
 		List<TermoSample> comments = new ArrayList<TermoSample>();
 
 		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,	allColumns, null, null, null, null, null);
 
 		cursor.moveToFirst();
 		while (!cursor.isAfterLast()) {
-			TermoSample comment = sampleFromCursor(cursor);
-			comments.add(comment);
+			TermoSample sample = sampleFromCursor(cursor);
+			comments.add(sample);
 			cursor.moveToNext();
 		}
 		// Make sure to close the cursor
@@ -68,11 +70,17 @@ public class TermoDatasource {
 		return comments;
 	}
 
-	private TermoSample sampleFromCursor(Cursor cursor) {
-		TermoSample comment = new TermoSample();
-		comment.setId(cursor.getLong(0));
-		comment.setTemperature(cursor.getFloat(1));
-		return comment;
+	private TermoSample sampleFromCursor(Cursor cursor) throws ParseException {
+		TermoSample sample = new TermoSample();
+		sample.setId(cursor.getLong(0));
+		sample.setTemperature(cursor.getFloat(1));
+		sample.setTrend(cursor.getInt(2));
+		
+		String sampleTimeString = cursor.getString(3);
+		Date sampleTime = DateFormat.getInstance().parse(sampleTimeString);
+		sample.setSampleTime(sampleTime);
+		
+		return sample;
 	}
 }
 

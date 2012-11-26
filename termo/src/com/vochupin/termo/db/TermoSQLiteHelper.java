@@ -15,7 +15,7 @@ public class TermoSQLiteHelper extends SQLiteOpenHelper {
 	public static final String COLUMN_TREND = "trend";
 	public static final String COLUMN_DATETIME = "datetime";
 
-	private static final String DATABASE_NAME = "commments.db";
+	private static final String DATABASE_NAME = "samples.db";
 	private static final int DATABASE_VERSION = 1;
 
 	// Database creation sql statement
