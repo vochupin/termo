@@ -54,8 +54,8 @@ public class TermoSample {
 	public String toString() {
 		if(initialized){
 			String retval = "t° = " + temperature;
-			retval += "     Δt = " + trend;
-			retval += "\n" + sampleTime.toLocaleString();
+			retval += " Δt = " + trend;
+			retval += " " + sampleTime.toLocaleString();
 			return retval;
 		}else{
 			return "Температура неизвестна.";

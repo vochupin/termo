@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONException;
@@ -71,10 +72,11 @@ public class UpdateService extends Service {
 					e.printStackTrace();
 				}
 			}
-			
+
 			if(ts == null){
 				try {
-					ts = tds.getLastSamples(1);
+					List<TermoSample> tsamples = tds.getLastSamples(1); 
+					if(tsamples.size() != 0) ts = tsamples.get(0);
 				} catch (ParseException e) {
 					Log.e(TAG, "Can't read last sample from base.");
 					e.printStackTrace();
@@ -82,7 +84,7 @@ public class UpdateService extends Service {
 				}
 			}
 
-			updateWidgets(appWidgetManager, allWidgetIds, ts.toString());
+			updateWidgets(appWidgetManager, allWidgetIds, null, tds);
 
 			tds.close();
 
@@ -107,8 +109,8 @@ public class UpdateService extends Service {
 
 		AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(UpdateService.this.getApplicationContext());
 		int[] allWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
-		updateWidgets(appWidgetManager, allWidgetIds, "Сейчас все будет!");
-		
+		updateWidgets(appWidgetManager, allWidgetIds, "Запрос...", null);
+
 		Bundle bundle = new Bundle();
 		bundle.putIntArray(ALL_WIDGET_IDS, allWidgetIds);
 		msg.setData(bundle);
@@ -131,30 +133,67 @@ public class UpdateService extends Service {
 		Log.i(TAG, "service done"); 
 	}
 
-	private void updateWidgets(AppWidgetManager appWidgetManager, int[] allWidgetIds, String temperature) {
+	private void updateWidgets(AppWidgetManager appWidgetManager, int[] allWidgetIds, String message, TermoDataSource tds) {
 		for (int widgetId : allWidgetIds) {
 			RemoteViews remoteViews = new RemoteViews(this.getApplicationContext().getPackageName(), R.layout.main);
-						
+
 			AppWidgetProviderInfo awi = appWidgetManager.getAppWidgetInfo(widgetId);
 			int h = awi.minHeight;
 			int w = awi.minWidth;
-			
+			Log.i(TAG, "h: " + h + " w:" + w);
+
 			Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
 			Canvas canvas = new Canvas(bitmap);
 
-			Log.e(TAG, "hw : " + h + " " + w);
-			
 			Rect rect = new Rect(0, 0, w, h);
 			Paint paint = new Paint();
 			paint.setTextSize(40);
-			paint.setColor(Color.YELLOW);
+			paint.setColor(Color.GREEN);
 			paint.setAntiAlias(true);
-			canvas.drawText(temperature, 0, 20 + h / 2, paint);
 			
-			canvas.drawRect(new Rect( 0, 0, 10, 10), paint);
-			canvas.drawRect(new Rect( 0, h - 10, 10, h), paint);
-			canvas.drawRect(new Rect( w - 10, 0, w, 10), paint);
-			canvas.drawRect(new Rect( w -10, h - 10, w, h), paint);
+			if(message != null){
+				canvas.drawText(message, 10, 20 + h / 2, paint);
+			}
+
+			if(tds != null){
+				try {
+					List<TermoSample> tsamples = tds.getLastSamples(20);
+					if(tsamples.size() != 0){
+						
+						int x = w - 10;
+						int xstep = (w - 20)/(tsamples.size() - 1);
+						float ymax = -Float.MAX_VALUE; float ymin = Float.MAX_VALUE;
+						for(TermoSample ts : tsamples){
+							Log.i(TAG, "ts: " + ts);
+							if(ymax < ts.getTemperature()) ymax = ts.getTemperature();
+							if(ymin > ts.getTemperature()) ymin = ts.getTemperature();
+						}
+						float span = ymax - ymin;
+						Log.i(TAG, "max: " + ymax + " min: " + ymin + " span: " + span);
+						
+						int oldx = x; int oldy = Integer.MAX_VALUE;
+						for(TermoSample ts : tsamples){
+							int y = (int) ((h - 20) * (1 - (ts.getTemperature() - ymin) / span)) + 10;
+							
+							if(oldy == Integer.MAX_VALUE) oldy = y;
+							
+							canvas.drawCircle(x, y, 3, paint);
+							canvas.drawLine(oldx, oldy, x, y, paint);
+							
+							Log.i(TAG, "x: " + x + " y: " + y);
+							oldx = x; oldy = y;
+							x -= xstep;
+						}
+						
+						float t = tsamples.get(0).getTemperature();
+						paint.setColor(Color.BLUE);
+						canvas.drawText(Float.toString(t), 10 + w / 2, 20 + h / 2, paint);
+					}
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 
 			remoteViews.setImageViewBitmap(R.id.ivInfo, bitmap);
 

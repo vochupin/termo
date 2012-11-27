@@ -91,14 +91,20 @@ public class TermoDataSource {
 		return sample;
 	}
 
-	public TermoSample getLastSamples(int numberOf) throws ParseException {
+	public List<TermoSample> getLastSamples(int numberOf) throws ParseException {
+		
+		List<TermoSample> retval = new ArrayList<TermoSample>();
 
 		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,	allColumns, null, null, null, null, "1 DESC LIMIT " + numberOf);
 
-		if(cursor.moveToFirst() == false){
-			return null;
+		cursor.moveToFirst();
+		while (!cursor.isAfterLast()) {
+			TermoSample sample = sampleFromCursor(cursor);
+			retval.add(sample);
+			cursor.moveToNext();
 		}
-		return sampleFromCursor(cursor);
-	}
+		// Make sure to close the cursor
+		cursor.close();
+		return retval;	}
 }
 
