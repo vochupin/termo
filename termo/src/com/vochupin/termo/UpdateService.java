@@ -15,7 +15,13 @@ import com.vochupin.termo.db.TermoSample;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
+import android.appwidget.AppWidgetProviderInfo;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -68,7 +74,7 @@ public class UpdateService extends Service {
 			
 			if(ts == null){
 				try {
-					ts = tds.getLastSample();
+					ts = tds.getLastSamples(1);
 				} catch (ParseException e) {
 					Log.e(TAG, "Can't read last sample from base.");
 					e.printStackTrace();
@@ -128,7 +134,18 @@ public class UpdateService extends Service {
 	private void updateWidgets(AppWidgetManager appWidgetManager, int[] allWidgetIds, String temperature) {
 		for (int widgetId : allWidgetIds) {
 			RemoteViews remoteViews = new RemoteViews(this.getApplicationContext().getPackageName(), R.layout.main);
-			remoteViews.setTextViewText(R.id.tvOutput, temperature);
+			
+			Bitmap bitmap = Bitmap.createBitmap(200, 100, Bitmap.Config.ARGB_8888);
+			Canvas canvas = new Canvas(bitmap);
+			
+			Rect rect = new Rect(0, 0, 10, 10);
+			Paint paint = new Paint();
+			paint.setColor(Color.RED);
+			paint.setTextSize(15);
+			canvas.drawRect(rect, paint);
+			canvas.drawText(temperature, 0, 15, paint);			
+
+			remoteViews.setImageViewBitmap(R.id.ivInfo, bitmap);
 
 			enableUpdateOnClick(allWidgetIds, remoteViews);
 
@@ -143,6 +160,6 @@ public class UpdateService extends Service {
 		clickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, allWidgetIds);
 
 		PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, clickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-		remoteViews.setOnClickPendingIntent(R.id.tvOutput, pendingIntent);
+		remoteViews.setOnClickPendingIntent(R.id.ivInfo, pendingIntent);
 	}
 } 

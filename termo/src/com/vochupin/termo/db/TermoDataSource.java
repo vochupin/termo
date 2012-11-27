@@ -91,9 +91,9 @@ public class TermoDataSource {
 		return sample;
 	}
 
-	public TermoSample getLastSample() throws ParseException {
+	public TermoSample getLastSamples(int numberOf) throws ParseException {
 
-		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,	allColumns, null, null, null, null, "1 DESC LIMIT 1");
+		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,	allColumns, null, null, null, null, "1 DESC LIMIT " + numberOf);
 
 		if(cursor.moveToFirst() == false){
 			return null;
