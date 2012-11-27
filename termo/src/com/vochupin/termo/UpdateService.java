@@ -138,7 +138,7 @@ public class UpdateService extends Service {
 			AppWidgetProviderInfo awi = appWidgetManager.getAppWidgetInfo(widgetId);
 			int h = awi.minHeight;
 			int w = awi.minWidth;
-
+			
 			Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
 			Canvas canvas = new Canvas(bitmap);
 
@@ -149,7 +149,12 @@ public class UpdateService extends Service {
 			paint.setTextSize(40);
 			paint.setColor(Color.YELLOW);
 			paint.setAntiAlias(true);
-			canvas.drawText(temperature, 0, 20 + h / 2, paint);			
+			canvas.drawText(temperature, 0, 20 + h / 2, paint);
+			
+			canvas.drawRect(new Rect( 0, 0, 10, 10), paint);
+			canvas.drawRect(new Rect( 0, h - 10, 10, h), paint);
+			canvas.drawRect(new Rect( w - 10, 0, w, 10), paint);
+			canvas.drawRect(new Rect( w -10, h - 10, w, h), paint);
 
 			remoteViews.setImageViewBitmap(R.id.ivInfo, bitmap);
 
