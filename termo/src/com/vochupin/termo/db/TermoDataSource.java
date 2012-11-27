@@ -12,7 +12,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
-public class TermoDatasource {
+public class TermoDataSource {
 
 	// Database fields
 	private SQLiteDatabase database;
@@ -22,7 +22,7 @@ public class TermoDatasource {
 			TermoSQLiteHelper.COLUMN_TREND,
 			TermoSQLiteHelper.COLUMN_DATETIME};
 
-	public TermoDatasource(Context context) {
+	public TermoDataSource(Context context) {
 		dbHelper = new TermoSQLiteHelper(context);
 	}
 
@@ -38,7 +38,7 @@ public class TermoDatasource {
 		ContentValues values = new ContentValues();
 		values.put(TermoSQLiteHelper.COLUMN_TEMPERATURE, temperature);
 		values.put(TermoSQLiteHelper.COLUMN_TREND, trend);
-		values.put(TermoSQLiteHelper.COLUMN_TEMPERATURE, DateFormat.getInstance().format(sampleTime.toGMTString()));
+		values.put(TermoSQLiteHelper.COLUMN_DATETIME, DateFormat.getInstance().format(sampleTime));
 		long insertId = database.insert(TermoSQLiteHelper.TABLE_SAMPLES, null, values);
 		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,
 				allColumns, TermoSQLiteHelper.COLUMN_ID + " = " + insertId, null, null, null, null);

@@ -23,7 +23,7 @@ public class TermoSQLiteHelper extends SQLiteOpenHelper {
 			+ TABLE_SAMPLES + "(" + 
 			COLUMN_ID + " integer primary key autoincrement, " + 
 			COLUMN_TEMPERATURE + " real not null, " + 
-			COLUMN_TREND + " string not null" + 
+			COLUMN_TREND + " integer not null, " + 
 			COLUMN_DATETIME + " string not null);";
 
 	public TermoSQLiteHelper(Context context) {

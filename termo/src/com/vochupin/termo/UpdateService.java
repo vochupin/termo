@@ -9,7 +9,7 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.vochupin.termo.db.TermoDatasource;
+import com.vochupin.termo.db.TermoDataSource;
 import com.vochupin.termo.db.TermoSample;
 
 import android.app.PendingIntent;
@@ -36,10 +36,6 @@ public class UpdateService extends Service {
 	private Looper mServiceLooper;
 	private ServiceHandler mServiceHandler;
 
-	private Map<String, Integer> trendMap = new HashMap<String, Integer>(){{
-		put("+", +1); put("-", -1);
-	}};
-
 	// Handler that receives messages from the thread
 	private final class ServiceHandler extends Handler {
 		public ServiceHandler(Looper looper) {
@@ -59,15 +55,16 @@ public class UpdateService extends Service {
 
 			if(Client.NO_CONNECTION.equals(tempJson) == false){
 
-				TermoDatasource tds = new TermoDatasource(UpdateService.this);
+				TermoDataSource tds = new TermoDataSource(UpdateService.this);
 				tds.open();
 
 				TermoSample ts;
 				try {
-					ts = parseTermoResponse(tempJson, tds);
+					ts = TermoSample.fromJson(tempJson, tds);
 					updateWidgets(appWidgetManager, allWidgetIds, ts.toString());
 				} catch (Exception e) {
 					Log.e(TAG, "Parsing error: " + e.toString() + " when parse: " + tempJson);
+					e.printStackTrace();
 				}
 				tds.close();
 			}
@@ -91,7 +88,10 @@ public class UpdateService extends Service {
 		Message msg = mServiceHandler.obtainMessage();
 		msg.arg1 = startId;
 
+		AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(UpdateService.this.getApplicationContext());
 		int[] allWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+		updateWidgets(appWidgetManager, allWidgetIds, "Сейчас все будет!");
+		
 		Bundle bundle = new Bundle();
 		bundle.putIntArray(ALL_WIDGET_IDS, allWidgetIds);
 		msg.setData(bundle);
@@ -133,24 +133,5 @@ public class UpdateService extends Service {
 
 		PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, clickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 		remoteViews.setOnClickPendingIntent(R.id.tvOutput, pendingIntent);
-	}
-
-	private TermoSample parseTermoResponse(String json, TermoDatasource tds) throws ParseException, JSONException {
-		TermoSample retval = null;
-
-		JSONObject jobj = new JSONObject(json);
-
-		float temperature = (float)jobj.getDouble("current_temp");
-
-		String trendString = jobj.getString("current_temp_change").trim();
-		int trend = trendMap.get(trendString);
-
-		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:dd.MM.yyyy");
-		String sampleTimeString = jobj.getString("current_time") + ":" + jobj.getString("current_date");
-
-		Date sampleTime = sdf.parse(sampleTimeString);
-
-		retval = tds.createSample(temperature, trend, sampleTime);
-		return retval;
 	}
 } 
