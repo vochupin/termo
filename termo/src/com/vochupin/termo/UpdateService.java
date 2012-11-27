@@ -134,16 +134,24 @@ public class UpdateService extends Service {
 	private void updateWidgets(AppWidgetManager appWidgetManager, int[] allWidgetIds, String temperature) {
 		for (int widgetId : allWidgetIds) {
 			RemoteViews remoteViews = new RemoteViews(this.getApplicationContext().getPackageName(), R.layout.main);
-			
-			Bitmap bitmap = Bitmap.createBitmap(200, 100, Bitmap.Config.ARGB_8888);
+						
+			AppWidgetProviderInfo awi = appWidgetManager.getAppWidgetInfo(widgetId);
+			int h = awi.minHeight - 10;
+			int w = awi.minWidth - 10;
+
+			Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
 			Canvas canvas = new Canvas(bitmap);
+
+			Log.e(TAG, "hw : " + h + " " + w);
 			
-			Rect rect = new Rect(0, 0, 10, 10);
+			Rect rect = new Rect(0, 0, w, h);
 			Paint paint = new Paint();
-			paint.setColor(Color.RED);
-			paint.setTextSize(15);
+			paint.setColor(Color.BLACK);
+			paint.setTextSize(40);
 			canvas.drawRect(rect, paint);
-			canvas.drawText(temperature, 0, 15, paint);			
+			paint.setColor(Color.YELLOW);
+			paint.setAntiAlias(true);
+			canvas.drawText(temperature, 0, 40, paint);			
 
 			remoteViews.setImageViewBitmap(R.id.ivInfo, bitmap);
 
