@@ -33,6 +33,16 @@ public class TermoSample {
 	public void setSampleTime(Date sampleTime) {
 		this.sampleTime = sampleTime;
 	}
+	@Override
+	public String toString() {
+		return "TermoSample [id=" + id + ", temperature=" + temperature
+				+ ", trend=" + trend + ", sampleTime=" + sampleTime + "]";
+//		retval = "t° = " + jobj.getDouble("current_temp");
+//		retval += "     Δt = " + jobj.getString("current_temp_change");
+//		retval += "\n" + jobj.getString("current_date") + " " + jobj.getString("current_time");
+
+	}
+	
 	
 	
 }
