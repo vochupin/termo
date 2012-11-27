@@ -11,16 +11,19 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 public class TermoDataSource {
 
+	private static final String TAG = TermoDataSource.class.getSimpleName();
 	// Database fields
 	private SQLiteDatabase database;
 	private TermoSQLiteHelper dbHelper;
-	private String[] allColumns = { TermoSQLiteHelper.COLUMN_ID, 
+	private String[] allColumns = { 
+			TermoSQLiteHelper.COLUMN_DATETIME,
 			TermoSQLiteHelper.COLUMN_TEMPERATURE,
-			TermoSQLiteHelper.COLUMN_TREND,
-			TermoSQLiteHelper.COLUMN_DATETIME};
+			TermoSQLiteHelper.COLUMN_TREND
+			};
 
 	public TermoDataSource(Context context) {
 		dbHelper = new TermoSQLiteHelper(context);
@@ -36,22 +39,34 @@ public class TermoDataSource {
 
 	public TermoSample createSample(float temperature, int trend, Date sampleTime) throws ParseException {
 		ContentValues values = new ContentValues();
+		long sampleTimestamp = sampleTime.getTime();
+		values.put(TermoSQLiteHelper.COLUMN_DATETIME, sampleTimestamp);
 		values.put(TermoSQLiteHelper.COLUMN_TEMPERATURE, temperature);
 		values.put(TermoSQLiteHelper.COLUMN_TREND, trend);
-		values.put(TermoSQLiteHelper.COLUMN_DATETIME, DateFormat.getInstance().format(sampleTime));
+
+		TermoSample newSample = queryTermoSample(sampleTimestamp);
+		if(newSample != null) {
+			Log.i(TAG, "Sample: " + sampleTimestamp + " is already in base. No need to insert.");
+			return newSample;
+		}
+		
 		long insertId = database.insert(TermoSQLiteHelper.TABLE_SAMPLES, null, values);
-		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,
-				allColumns, TermoSQLiteHelper.COLUMN_ID + " = " + insertId, null, null, null, null);
-		cursor.moveToFirst();
+		newSample = queryTermoSample(insertId);
+		return newSample;
+	}
+
+	private TermoSample queryTermoSample(long insertId) throws ParseException {
+		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,	allColumns, TermoSQLiteHelper.COLUMN_DATETIME + " = " + insertId, null, null, null, null);
+		if(cursor.moveToFirst() == false) return null;
 		TermoSample newSample = sampleFromCursor(cursor);
 		cursor.close();
 		return newSample;
 	}
 
 	public void deleteSample(TermoSample sample) {
-		long id = sample.getId();
+		long id = sample.getSampleTime().getTime();
 		System.out.println("Sample deleted with id: " + id);
-		database.delete(TermoSQLiteHelper.TABLE_SAMPLES, TermoSQLiteHelper.COLUMN_ID + " = " + id, null);
+		database.delete(TermoSQLiteHelper.TABLE_SAMPLES, TermoSQLiteHelper.COLUMN_DATETIME + " = " + id, null);
 	}
 
 	public List<TermoSample> getAllSamples() throws ParseException {
@@ -71,16 +86,19 @@ public class TermoDataSource {
 	}
 
 	private TermoSample sampleFromCursor(Cursor cursor) throws ParseException {
-		TermoSample sample = new TermoSample();
-		sample.setId(cursor.getLong(0));
-		sample.setTemperature(cursor.getFloat(1));
-		sample.setTrend(cursor.getInt(2));
-		
-		String sampleTimeString = cursor.getString(3);
-		Date sampleTime = DateFormat.getInstance().parse(sampleTimeString);
-		sample.setSampleTime(sampleTime);
-		
+		Date sampleTime = new Date(cursor.getLong(0));
+		TermoSample sample = new TermoSample(sampleTime, cursor.getFloat(1), cursor.getInt(2));
 		return sample;
+	}
+
+	public TermoSample getLastSample() throws ParseException {
+
+		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,	allColumns, null, null, null, null, "1 DESC LIMIT 1");
+
+		if(cursor.moveToFirst() == false){
+			return null;
+		}
+		return sampleFromCursor(cursor);
 	}
 }
 

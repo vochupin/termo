@@ -53,21 +53,32 @@ public class UpdateService extends Service {
 			Client client = new Client(TERMO_SERVER);
 			String tempJson = client.getTemperatureJson(TERMO_JSON_INFORMER);
 
+			TermoDataSource tds = new TermoDataSource(UpdateService.this);
+			tds.open();
+
+			TermoSample ts = null;
 			if(Client.NO_CONNECTION.equals(tempJson) == false){
-
-				TermoDataSource tds = new TermoDataSource(UpdateService.this);
-				tds.open();
-
-				TermoSample ts;
 				try {
 					ts = TermoSample.fromJson(tempJson, tds);
-					updateWidgets(appWidgetManager, allWidgetIds, ts.toString());
 				} catch (Exception e) {
 					Log.e(TAG, "Parsing error: " + e.toString() + " when parse: " + tempJson);
 					e.printStackTrace();
 				}
-				tds.close();
 			}
+			
+			if(ts == null){
+				try {
+					ts = tds.getLastSample();
+				} catch (ParseException e) {
+					Log.e(TAG, "Can't read last sample from base.");
+					e.printStackTrace();
+					ts = new TermoSample();
+				}
+			}
+
+			updateWidgets(appWidgetManager, allWidgetIds, ts.toString());
+
+			tds.close();
 
 			stopSelf(msg.arg1);
 			Log.i(TAG, "handler done");
