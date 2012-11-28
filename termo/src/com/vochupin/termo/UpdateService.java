@@ -23,6 +23,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -146,18 +147,34 @@ public class UpdateService extends Service {
 			Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
 			Canvas canvas = new Canvas(bitmap);
 
-			Rect rect = new Rect(0, 0, w, h);
 			Paint paint = new Paint();
-			paint.setTextSize(40);
-			paint.setColor(Color.GREEN);
 			paint.setAntiAlias(true);
-			
+			paint.setColor(Color.BLACK);
+			paint.setTextSize(10);
+			float tw = paint.measureText(TERMO_SERVER);
+			canvas.drawText(TERMO_SERVER, w / 2 - tw / 2, 10, paint);
+
+			paint.setColor(Color.GRAY);
+			for(int i = 0; i < 5; i++){
+				float x = 10 + i * (w - 20) / 4;
+				canvas.drawLine(x, 10, x, h - 10, paint);
+			}
+
+			for(int i = 0; i < 3; i++){
+				float y = 10 + i * (h - 20) / 2;
+				canvas.drawLine(10, y, w - 10, y, paint);
+			}
+
 			if(message != null){
+				paint.setColor(Color.GREEN);
+				paint.setTextSize(40);
 				canvas.drawText(message, 10, 20 + h / 2, paint);
 			}
 
 			if(tds != null){
 				try {
+					
+					
 					List<TermoSample> tsamples = tds.getLastSamplesForPeriod(PERIOD_12H);
 					tsamples.add(tds.getNextSample(tsamples.get(tsamples.size() - 1)));
 					if(tsamples.size() != 0){
@@ -176,6 +193,17 @@ public class UpdateService extends Service {
 						float xspan = xmax - xmin;
 						Log.i(TAG, "xmax: " + xmax + " xmin: " + xmin + " xspan: " + xspan);
 						
+						paint.setColor(Color.BLACK);
+						paint.setTextSize(8);
+						String maxTemp = Float.toString(ymax);
+						tw = paint.measureText(maxTemp);
+						canvas.drawText(maxTemp, w - 10 - tw, 8, paint);
+
+						String minTemp = Float.toString(ymin);
+						tw = paint.measureText(minTemp);
+						canvas.drawText(minTemp, w - 10 - tw, h, paint);
+						
+						paint.setColor(Color.GREEN);
 						int oldx = Integer.MAX_VALUE; int oldy = Integer.MAX_VALUE;
 						for(TermoSample ts : tsamples){
 							int x = (int) ((w - 20) * ((float)ts.getSampleTime().getTime() - xmin) / xspan) + 10;
@@ -185,7 +213,7 @@ public class UpdateService extends Service {
 							
 							if(oldy == Integer.MAX_VALUE) {oldy = y; oldx = x;}
 							
-							canvas.drawCircle(x, y, 3, paint);
+							canvas.drawCircle(x, y, 2, paint);
 							canvas.drawLine(oldx, oldy, x, y, paint);
 							
 							Log.i(TAG, "x: " + x + " y: " + y);
@@ -198,10 +226,13 @@ public class UpdateService extends Service {
 						}else{
 							paint.setColor(Color.BLUE);
 						}
+						paint.setTypeface(Typeface.DEFAULT_BOLD);
+						paint.setTextSize(40);
 						String tstr = Float.toString(t) + "°";
-						float tw = paint.measureText(tstr);
+						tw = paint.measureText(tstr);
 						canvas.drawText(tstr, w / 2 - tw / 2, 20 + h / 2, paint);
 						paint.setColor(Color.BLACK);
+						paint.setTypeface(Typeface.DEFAULT);
 						paint.setTextSize(10);
 						canvas.drawText(tsamples.get(0).getSampleTime().toLocaleString(), 10, h, paint);
 					}
