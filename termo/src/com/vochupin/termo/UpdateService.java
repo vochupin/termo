@@ -160,20 +160,26 @@ public class UpdateService extends Service {
 					List<TermoSample> tsamples = tds.getLastSamples(20);
 					if(tsamples.size() != 0){
 						
-						int x = w - 10;
-						int xstep = (w - 20)/(tsamples.size() - 1);
 						float ymax = -Float.MAX_VALUE; float ymin = Float.MAX_VALUE;
 						for(TermoSample ts : tsamples){
 							Log.i(TAG, "ts: " + ts);
 							if(ymax < ts.getTemperature()) ymax = ts.getTemperature();
 							if(ymin > ts.getTemperature()) ymin = ts.getTemperature();
 						}
-						float span = ymax - ymin;
-						Log.i(TAG, "max: " + ymax + " min: " + ymin + " span: " + span);
+						float yspan = ymax - ymin;
+						Log.i(TAG, "ymax: " + ymax + " ymin: " + ymin + " yspan: " + yspan);
 						
-						int oldx = x; int oldy = Integer.MAX_VALUE;
+						float xmax = tsamples.get(0).getSampleTime().getTime();
+						float xmin = tsamples.get(tsamples.size() - 1).getSampleTime().getTime();
+						float xspan = xmax - xmin;
+						Log.i(TAG, "xmax: " + xmax + " xmin: " + xmin + " xspan: " + xspan);
+						
+						int oldx = Integer.MAX_VALUE; int oldy = Integer.MAX_VALUE;
 						for(TermoSample ts : tsamples){
-							int y = (int) ((h - 20) * (1 - (ts.getTemperature() - ymin) / span)) + 10;
+							int x = (int) ((w - 20) * ((float)ts.getSampleTime().getTime() - xmin) / xspan) + 10;
+							int y = (int) ((h - 20) * (1 - (ts.getTemperature() - ymin) / yspan)) + 10;
+							
+							Log.i(TAG, "x: " + x + " " +(ts.getSampleTime().getTime() - xmin));
 							
 							if(oldy == Integer.MAX_VALUE) oldy = y;
 							
@@ -182,12 +188,18 @@ public class UpdateService extends Service {
 							
 							Log.i(TAG, "x: " + x + " y: " + y);
 							oldx = x; oldy = y;
-							x -= xstep;
 						}
 						
 						float t = tsamples.get(0).getTemperature();
-						paint.setColor(Color.BLUE);
+						if(t > 0){
+							paint.setColor(Color.RED);
+						}else{
+							paint.setColor(Color.BLUE);
+						}
 						canvas.drawText(Float.toString(t), 10 + w / 2, 20 + h / 2, paint);
+						paint.setColor(Color.BLACK);
+						paint.setTextSize(10);
+						canvas.drawText(tsamples.get(0).getSampleTime().toLocaleString(), 10, h, paint);
 					}
 				} catch (ParseException e) {
 					// TODO Auto-generated catch block
