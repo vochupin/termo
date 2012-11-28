@@ -217,11 +217,11 @@ public class UpdateService extends Service {
 			paint.setColor(Color.BLUE);
 		}
 		paint.setTypeface(Typeface.DEFAULT_BOLD);
-		paint.setAlpha(50);
-		paint.setTextSize(40);
+		paint.setAlpha(150);
+		paint.setTextSize(50);
 		String tstr = Float.toString(ts.getTemperature()) + "°";
 		float tw = paint.measureText(tstr);
-		canvas.drawText(tstr, w / 2 - tw / 2, 20 + h / 2, paint);
+		canvas.drawText(tstr, w / 2 - tw / 2, 25 + h / 2, paint);
 		paint.setColor(Color.BLACK);
 		paint.setTypeface(Typeface.DEFAULT);
 		paint.setTextSize(10);
