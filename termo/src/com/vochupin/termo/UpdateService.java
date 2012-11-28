@@ -39,6 +39,7 @@ public class UpdateService extends Service {
 	private static final String TERMO_SERVER = "http://termo.tomsk.ru/";
 	private static final String TERMO_JSON_INFORMER = "data.json";
 	private static final String ALL_WIDGET_IDS = "allWidgetIds";
+	private static final long PERIOD_12H = 1000 * 60 * 60 * 12;
 
 	private Looper mServiceLooper;
 	private ServiceHandler mServiceHandler;
@@ -157,7 +158,8 @@ public class UpdateService extends Service {
 
 			if(tds != null){
 				try {
-					List<TermoSample> tsamples = tds.getLastSamples(20);
+					List<TermoSample> tsamples = tds.getLastSamplesForPeriod(PERIOD_12H);
+					tsamples.add(tds.getNextSample(tsamples.get(tsamples.size() - 1)));
 					if(tsamples.size() != 0){
 						
 						float ymax = -Float.MAX_VALUE; float ymin = Float.MAX_VALUE;
@@ -170,7 +172,7 @@ public class UpdateService extends Service {
 						Log.i(TAG, "ymax: " + ymax + " ymin: " + ymin + " yspan: " + yspan);
 						
 						float xmax = tsamples.get(0).getSampleTime().getTime();
-						float xmin = tsamples.get(tsamples.size() - 1).getSampleTime().getTime();
+						float xmin = xmax - PERIOD_12H;//tsamples.get(tsamples.size() - 1).getSampleTime().getTime();
 						float xspan = xmax - xmin;
 						Log.i(TAG, "xmax: " + xmax + " xmin: " + xmin + " xspan: " + xspan);
 						
@@ -181,7 +183,7 @@ public class UpdateService extends Service {
 							
 							Log.i(TAG, "x: " + x + " " +(ts.getSampleTime().getTime() - xmin));
 							
-							if(oldy == Integer.MAX_VALUE) oldy = y;
+							if(oldy == Integer.MAX_VALUE) {oldy = y; oldx = x;}
 							
 							canvas.drawCircle(x, y, 3, paint);
 							canvas.drawLine(oldx, oldy, x, y, paint);

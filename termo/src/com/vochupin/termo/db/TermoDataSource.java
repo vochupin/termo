@@ -105,6 +105,39 @@ public class TermoDataSource {
 		}
 		// Make sure to close the cursor
 		cursor.close();
-		return retval;	}
+		return retval;	
+	}
+
+	public List<TermoSample> getLastSamplesForPeriod(long period) throws ParseException {
+		List<TermoSample> retval = new ArrayList<TermoSample>();
+		
+		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,	allColumns, null, null, null, null, "1 DESC LIMIT 1");
+		if(cursor.moveToFirst() == false) return retval;
+		TermoSample sample = sampleFromCursor(cursor);
+		long tillTime = sample.getSampleTime().getTime() - period;
+		cursor.close();
+
+		cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,	allColumns, "id > ?", new String[]{Long.toString(tillTime)}, null, null, "1 DESC");
+
+		cursor.moveToFirst();
+		while (!cursor.isAfterLast()) {
+			sample = sampleFromCursor(cursor);
+			retval.add(sample);
+			cursor.moveToNext();
+		}
+		// Make sure to close the cursor
+		cursor.close();
+		return retval;	
+	}
+
+	public TermoSample getNextSample(TermoSample termoSample) throws ParseException {
+		Cursor cursor = database.query(TermoSQLiteHelper.TABLE_SAMPLES,	allColumns, "id < ?", 
+				new String[]{Long.toString(termoSample.getSampleTime().getTime())}, null, null, "1 DESC LIMIT 1");
+
+		if(cursor.moveToFirst() == false) return termoSample;
+		TermoSample sample = sampleFromCursor(cursor);
+		cursor.close();
+		return sample;	
+	}
 }
 
