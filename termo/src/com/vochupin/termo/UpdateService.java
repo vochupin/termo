@@ -41,6 +41,9 @@ public class UpdateService extends Service {
 	private static final String TERMO_JSON_INFORMER = "data.json";
 	private static final String ALL_WIDGET_IDS = "allWidgetIds";
 	private static final long PERIOD_12H = 1000 * 60 * 60 * 12;
+	
+	private static final float HOR_MARGIN = 10;
+	private static final float VERT_MARGIN = 10;
 
 	private Looper mServiceLooper;
 	private ServiceHandler mServiceHandler;
@@ -149,34 +152,16 @@ public class UpdateService extends Service {
 
 			Paint paint = new Paint();
 			paint.setAntiAlias(true);
-			paint.setColor(Color.BLACK);
-			paint.setTextSize(10);
-			float tw = paint.measureText(TERMO_SERVER);
-			canvas.drawText(TERMO_SERVER, w / 2 - tw / 2, 10, paint);
 
-			paint.setColor(Color.GRAY);
-			for(int i = 0; i < 5; i++){
-				float x = 10 + i * (w - 20) / 4;
-				canvas.drawLine(x, 10, x, h - 10, paint);
-			}
+			drawGrid(h, w, canvas, paint);
 
-			for(int i = 0; i < 3; i++){
-				float y = 10 + i * (h - 20) / 2;
-				canvas.drawLine(10, y, w - 10, y, paint);
-			}
-
-			if(message != null){
-				paint.setColor(Color.GREEN);
-				paint.setTextSize(40);
-				canvas.drawText(message, 10, 20 + h / 2, paint);
-			}
+			drawExplicitMessage(message, h, w, canvas, paint);
 
 			if(tds != null){
 				try {
 					
+					List<TermoSample> tsamples = readSamplesFromDB(tds);
 					
-					List<TermoSample> tsamples = tds.getLastSamplesForPeriod(PERIOD_12H);
-					tsamples.add(tds.getNextSample(tsamples.get(tsamples.size() - 1)));
 					if(tsamples.size() != 0){
 						
 						float ymax = -Float.MAX_VALUE; float ymin = Float.MAX_VALUE;
@@ -189,27 +174,17 @@ public class UpdateService extends Service {
 						Log.i(TAG, "ymax: " + ymax + " ymin: " + ymin + " yspan: " + yspan);
 						
 						float xmax = tsamples.get(0).getSampleTime().getTime();
-						float xmin = xmax - PERIOD_12H;//tsamples.get(tsamples.size() - 1).getSampleTime().getTime();
+						float xmin = xmax - PERIOD_12H;
 						float xspan = xmax - xmin;
 						Log.i(TAG, "xmax: " + xmax + " xmin: " + xmin + " xspan: " + xspan);
 						
-						paint.setColor(Color.BLACK);
-						paint.setTextSize(8);
-						String maxTemp = Float.toString(ymax);
-						tw = paint.measureText(maxTemp);
-						canvas.drawText(maxTemp, w - 10 - tw, 8, paint);
-
-						String minTemp = Float.toString(ymin);
-						tw = paint.measureText(minTemp);
-						canvas.drawText(minTemp, w - 10 - tw, h, paint);
+						drawGridValues(h, w, canvas, paint, ymax, ymin);
 						
 						paint.setColor(Color.GREEN);
 						int oldx = Integer.MAX_VALUE; int oldy = Integer.MAX_VALUE;
 						for(TermoSample ts : tsamples){
-							int x = (int) ((w - 20) * ((float)ts.getSampleTime().getTime() - xmin) / xspan) + 10;
-							int y = (int) ((h - 20) * (1 - (ts.getTemperature() - ymin) / yspan)) + 10;
-							
-							Log.i(TAG, "x: " + x + " " +(ts.getSampleTime().getTime() - xmin));
+							int x = (int) ((w - 2 * HOR_MARGIN) * ((float)ts.getSampleTime().getTime() - xmin) / xspan) + (int)HOR_MARGIN;
+							int y = (int) ((h - 2 * VERT_MARGIN) * (1 - (ts.getTemperature() - ymin) / yspan)) + (int)VERT_MARGIN;
 							
 							if(oldy == Integer.MAX_VALUE) {oldy = y; oldx = x;}
 							
@@ -220,24 +195,9 @@ public class UpdateService extends Service {
 							oldx = x; oldy = y;
 						}
 						
-						float t = tsamples.get(0).getTemperature();
-						if(t > 0){
-							paint.setColor(Color.RED);
-						}else{
-							paint.setColor(Color.BLUE);
-						}
-						paint.setTypeface(Typeface.DEFAULT_BOLD);
-						paint.setTextSize(40);
-						String tstr = Float.toString(t) + "°";
-						tw = paint.measureText(tstr);
-						canvas.drawText(tstr, w / 2 - tw / 2, 20 + h / 2, paint);
-						paint.setColor(Color.BLACK);
-						paint.setTypeface(Typeface.DEFAULT);
-						paint.setTextSize(10);
-						canvas.drawText(tsamples.get(0).getSampleTime().toLocaleString(), 10, h, paint);
+						drawTemperatureAndTimestamp(h, w, canvas, paint, tsamples.get(0));
 					}
 				} catch (ParseException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -248,6 +208,69 @@ public class UpdateService extends Service {
 
 			appWidgetManager.updateAppWidget(widgetId, remoteViews);
 		}
+	}
+
+	private void drawTemperatureAndTimestamp(int h, int w, Canvas canvas, Paint paint, TermoSample ts) {
+		if(ts.getTemperature() >= 0){
+			paint.setColor(Color.RED);
+		}else{
+			paint.setColor(Color.BLUE);
+		}
+		paint.setTypeface(Typeface.DEFAULT_BOLD);
+		paint.setAlpha(50);
+		paint.setTextSize(40);
+		String tstr = Float.toString(ts.getTemperature()) + "°";
+		float tw = paint.measureText(tstr);
+		canvas.drawText(tstr, w / 2 - tw / 2, 20 + h / 2, paint);
+		paint.setColor(Color.BLACK);
+		paint.setTypeface(Typeface.DEFAULT);
+		paint.setTextSize(10);
+		canvas.drawText(ts.getSampleTime().toLocaleString(), 10, h, paint);
+	}
+
+	private void drawGridValues(int h, int w, Canvas canvas, Paint paint, float ymax, float ymin) {
+		paint.setColor(Color.BLACK);
+		paint.setTextSize(8);
+		String maxTemp = Float.toString(ymax);
+		float tw = paint.measureText(maxTemp);
+		canvas.drawText(maxTemp, w - HOR_MARGIN - tw, 8, paint);
+
+		String minTemp = Float.toString(ymin);
+		tw = paint.measureText(minTemp);
+		canvas.drawText(minTemp, w - HOR_MARGIN - tw, h, paint);
+	}
+
+	private List<TermoSample> readSamplesFromDB(TermoDataSource tds) throws ParseException {
+		List<TermoSample> tsamples = tds.getLastSamplesForPeriod(PERIOD_12H);
+		tsamples.add(tds.getNextSample(tsamples.get(tsamples.size() - 1)));
+		return tsamples;
+	}
+
+	private void drawExplicitMessage(String message, int h, int w, Canvas canvas, Paint paint) {
+		if(message != null){
+			paint.setColor(Color.GREEN);
+			paint.setTextSize(40);
+			float tw = paint.measureText(message);
+			canvas.drawText(message, w/2  - tw / 2, h / 2 + 20, paint);
+		}
+	}
+
+	private void drawGrid(int h, int w, Canvas canvas, Paint paint) {
+		paint.setColor(Color.GRAY);
+		for(int i = 0; i < 5; i++){
+			float x = HOR_MARGIN + i * (w - 2 * HOR_MARGIN) / 4;
+			canvas.drawLine(x, VERT_MARGIN, x, h - VERT_MARGIN, paint);
+		}
+
+		for(int i = 0; i < 3; i++){
+			float y = VERT_MARGIN + i * (h - 2 * VERT_MARGIN) / 2;
+			canvas.drawLine(HOR_MARGIN, y, w - HOR_MARGIN, y, paint);
+		}
+
+		paint.setColor(Color.BLACK);
+		paint.setTextSize(10);
+		float tw = paint.measureText(TERMO_SERVER);
+		canvas.drawText(TERMO_SERVER, w / 2 - tw / 2, 10, paint);
 	}
 
 	private void enableUpdateOnClick(int[] allWidgetIds,	RemoteViews remoteViews) {
