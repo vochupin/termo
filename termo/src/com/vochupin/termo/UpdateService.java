@@ -198,7 +198,9 @@ public class UpdateService extends Service {
 						}else{
 							paint.setColor(Color.BLUE);
 						}
-						canvas.drawText(Float.toString(t), 10 + w / 2, 20 + h / 2, paint);
+						String tstr = Float.toString(t) + "°";
+						float tw = paint.measureText(tstr);
+						canvas.drawText(tstr, w / 2 - tw / 2, 20 + h / 2, paint);
 						paint.setColor(Color.BLACK);
 						paint.setTextSize(10);
 						canvas.drawText(tsamples.get(0).getSampleTime().toLocaleString(), 10, h, paint);
