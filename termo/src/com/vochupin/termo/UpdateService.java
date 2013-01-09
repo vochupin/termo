@@ -143,6 +143,11 @@ public class UpdateService extends Service {
 			RemoteViews remoteViews = new RemoteViews(this.getApplicationContext().getPackageName(), R.layout.main);
 
 			AppWidgetProviderInfo awi = appWidgetManager.getAppWidgetInfo(widgetId);
+			if(awi == null){
+				Log.i(TAG, "app widget id has not been bound to a provider yet, or application don't have access to that app widget id");
+				return;
+			}
+			
 			int h = awi.minHeight;
 			int w = awi.minWidth;
 			Log.i(TAG, "h: " + h + " w:" + w);
