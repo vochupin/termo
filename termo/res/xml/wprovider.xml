@@ -3,5 +3,6 @@
     android:minWidth="214dip"
     android:minHeight="72dip"
     android:updatePeriodMillis="1800000"
-    android:initialLayout="@layout/main">
+    android:initialLayout="@layout/main" 
+    android:configure="com.vochupin.termo.ConfigActivity">
 </appwidget-provider>
