@@ -60,7 +60,6 @@ public class ConfigActivity extends Activity {
 			SharedPreferences.Editor editor = shPref.edit();
 			int color = cpView.getColor();
 			editor.putInt("FORE_COLOR", color);
-			editor.putInt("FORE_ALPHA", Color.alpha(color));
 			editor.commit();
 			Log.e(TAG, "written: " + color + " " + Color.alpha(color));
 			

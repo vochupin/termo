@@ -230,15 +230,10 @@ public class UpdateService extends Service {
 		int foreColor = shPref.getInt("FORE_COLOR", -1);
 		if(foreColor == -1){
 			paint.setColor(Color.BLUE);
+			paint.setAlpha(150);
 		}else{
 			paint .setColor(foreColor);
-		}
-		
-		int foreAlpha = shPref.getInt("FORE_ALPHA", -1);
-		if(foreAlpha == -1){
-			paint.setAlpha(0);
-		}else{
-			paint .setAlpha(foreAlpha);
+			paint .setAlpha(Color.alpha(foreColor));
 		}
 
 		paint.setTypeface(Typeface.DEFAULT_BOLD);
