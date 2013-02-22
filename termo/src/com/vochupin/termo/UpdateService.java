@@ -58,7 +58,7 @@ public class UpdateService extends Service {
 		@Override
 		public void handleMessage(Message msg) {
 			Log.i(TAG, "Update service started.");
-
+			
 			AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(UpdateService.this.getApplicationContext());
 			int[] allWidgetIds = msg.getData().getIntArray(ALL_WIDGET_IDS);
 			Log.w(TAG, "Number of ids to update (from intent): " + String.valueOf(allWidgetIds.length));
@@ -110,7 +110,7 @@ public class UpdateService extends Service {
 	}
 
 	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
+	public int onStartCommand(Intent intent, int flags, int startId) {		
 		Message msg = mServiceHandler.obtainMessage();
 		msg.arg1 = startId;
 
@@ -141,6 +141,8 @@ public class UpdateService extends Service {
 	}
 
 	private void updateWidgets(AppWidgetManager appWidgetManager, int[] allWidgetIds, String message, TermoDataSource tds) {
+		Preferences prefs = new Preferences(UpdateService.this);
+
 		for (int widgetId : allWidgetIds) {
 			RemoteViews remoteViews = new RemoteViews(this.getApplicationContext().getPackageName(), R.layout.main);
 
@@ -162,9 +164,9 @@ public class UpdateService extends Service {
 			Paint paint = new Paint();
 			paint.setAntiAlias(true);
 
-			drawGrid(h, w, canvas, paint);
+			drawGrid(h, w, canvas, paint, prefs);
 
-			drawExplicitMessage(message, h, w, canvas, paint);
+			drawExplicitMessage(message, h, w, canvas, paint, prefs);
 
 			if(tds != null){
 				try {
@@ -187,9 +189,10 @@ public class UpdateService extends Service {
 						float xspan = xmax - xmin;
 						Log.i(TAG, "xmax: " + xmax + " xmin: " + xmin + " xspan: " + xspan);
 						
-						drawGridValues(h, w, canvas, paint, ymax, ymin);
+						drawGridValues(h, w, canvas, paint, ymax, ymin, prefs);
 						
-						paint.setColor(Color.GREEN);
+						setColor(paint, prefs.getBackgroundColor());
+						
 						int oldx = Integer.MAX_VALUE; int oldy = Integer.MAX_VALUE;
 						for(TermoSample ts : tsamples){
 							int x = (int) ((w - 2 * HOR_MARGIN) * ((float)ts.getSampleTime().getTime() - xmin) / xspan) + (int)HOR_MARGIN;
@@ -204,7 +207,7 @@ public class UpdateService extends Service {
 							oldx = x; oldy = y;
 						}
 						
-						drawTemperatureAndTimestamp(h, w, canvas, paint, tsamples.get(0));
+						drawTemperatureAndTimestamp(h, w, canvas, paint, tsamples.get(0), prefs);
 					}
 				} catch (ParseException e) {
 					e.printStackTrace();
@@ -219,21 +222,11 @@ public class UpdateService extends Service {
 		}
 	}
 
-	private void drawTemperatureAndTimestamp(int h, int w, Canvas canvas, Paint paint, TermoSample ts) {
-//		if(ts.getTemperature() >= 0){
-//			paint.setColor(Color.RED);
-//		}else{
-//			paint.setColor(Color.BLUE);
-//		}
-
-		SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(this);
-		int foreColor = shPref.getInt("FORE_COLOR", -1);
-		if(foreColor == -1){
-			paint.setColor(Color.BLUE);
-			paint.setAlpha(150);
+	private void drawTemperatureAndTimestamp(int h, int w, Canvas canvas, Paint paint, TermoSample ts, Preferences prefs) {
+		if(ts.getTemperature() >= 0){
+			setColor(paint, prefs.getTempWarmColor());
 		}else{
-			paint .setColor(foreColor);
-			paint .setAlpha(Color.alpha(foreColor));
+			setColor(paint, prefs.getTempColdColor());
 		}
 
 		paint.setTypeface(Typeface.DEFAULT_BOLD);
@@ -241,14 +234,22 @@ public class UpdateService extends Service {
 		String tstr = Float.toString(ts.getTemperature()) + "°";
 		float tw = paint.measureText(tstr);
 		canvas.drawText(tstr, w / 2 - tw / 2, 25 + h / 2, paint);
-		paint.setColor(Color.BLACK);
+		
+		setColor(paint, prefs.getLinkColor());
+
 		paint.setTypeface(Typeface.DEFAULT);
 		paint.setTextSize(10);
 		canvas.drawText(ts.getSampleTime().toLocaleString(), 10, h, paint);
 	}
 
-	private void drawGridValues(int h, int w, Canvas canvas, Paint paint, float ymax, float ymin) {
-		paint.setColor(Color.BLACK);
+	private void setColor(Paint paint, int color) {
+		paint.setColor(color);
+		paint.setAlpha(Color.alpha(color));
+	}
+
+	private void drawGridValues(int h, int w, Canvas canvas, Paint paint, float ymax, float ymin, Preferences prefs) {
+		setColor(paint, prefs.getGridColor());
+		
 		paint.setTextSize(8);
 		String maxTemp = Float.toString(ymax);
 		float tw = paint.measureText(maxTemp);
@@ -265,17 +266,18 @@ public class UpdateService extends Service {
 		return tsamples;
 	}
 
-	private void drawExplicitMessage(String message, int h, int w, Canvas canvas, Paint paint) {
+	private void drawExplicitMessage(String message, int h, int w, Canvas canvas, Paint paint, Preferences prefs) {
 		if(message != null){
-			paint.setColor(Color.GREEN);
+			setColor(paint, prefs.getMessageColor());
+			
 			paint.setTextSize(40);
 			float tw = paint.measureText(message);
 			canvas.drawText(message, w/2  - tw / 2, h / 2 + 20, paint);
 		}
 	}
 
-	private void drawGrid(int h, int w, Canvas canvas, Paint paint) {
-		paint.setColor(Color.GRAY);
+	private void drawGrid(int h, int w, Canvas canvas, Paint paint, Preferences prefs) {
+		setColor(paint, prefs.getGridColor());
 		for(int i = 0; i < 5; i++){
 			float x = HOR_MARGIN + i * (w - 2 * HOR_MARGIN) / 4;
 			canvas.drawLine(x, VERT_MARGIN, x, h - VERT_MARGIN, paint);
@@ -286,7 +288,7 @@ public class UpdateService extends Service {
 			canvas.drawLine(HOR_MARGIN, y, w - HOR_MARGIN, y, paint);
 		}
 
-		paint.setColor(Color.BLACK);
+		setColor(paint, prefs.getLinkColor());
 		paint.setTextSize(10);
 		float tw = paint.measureText(TERMO_SERVER);
 		canvas.drawText(TERMO_SERVER, w / 2 - tw / 2, 10, paint);
