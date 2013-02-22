@@ -9,8 +9,11 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.RemoteViews;
+import android.widget.TextView;
 
 public class ConfigActivity extends Activity {
 
@@ -36,6 +39,10 @@ public class ConfigActivity extends Activity {
                     AppWidgetManager.EXTRA_APPWIDGET_ID, 
                     AppWidgetManager.INVALID_APPWIDGET_ID);
         }
+        
+        ColorPickerView cpView = new ColorPickerView(this);
+        ViewGroup layout = (ViewGroup) findViewById(R.id.vllConfigLayout);
+        layout.addView(cpView);
     }
     
     private OnClickListener btnOkClickListener = new OnClickListener(){
