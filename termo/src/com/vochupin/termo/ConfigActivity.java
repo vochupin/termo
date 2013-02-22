@@ -1,9 +1,12 @@
 package com.vochupin.termo;
 
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -20,6 +23,8 @@ public class ConfigActivity extends Activity {
 	protected static final String TAG = ConfigActivity.class.getSimpleName();
 	private int appWidgetId;
 	private Button btnOk;
+	
+	private ColorPickerView cpView; 
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,7 +45,9 @@ public class ConfigActivity extends Activity {
                     AppWidgetManager.INVALID_APPWIDGET_ID);
         }
         
-        ColorPickerView cpView = new ColorPickerView(this);
+        cpView = new ColorPickerView(this);
+        cpView.setAlphaSliderVisible(true);
+        cpView.setAlphaSliderText("Прозрачность");
         ViewGroup layout = (ViewGroup) findViewById(R.id.vllConfigLayout);
         layout.addView(cpView);
     }
@@ -48,6 +55,15 @@ public class ConfigActivity extends Activity {
     private OnClickListener btnOkClickListener = new OnClickListener(){
 		@Override
 		public void onClick(View arg0) {
+			
+			SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(ConfigActivity.this);//getPreferences(MODE_PRIVATE);
+			SharedPreferences.Editor editor = shPref.edit();
+			int color = cpView.getColor();
+			editor.putInt("FORE_COLOR", color);
+			editor.putInt("FORE_ALPHA", Color.alpha(color));
+			editor.commit();
+			Log.e(TAG, "written: " + color + " " + Color.alpha(color));
+			
 			AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(ConfigActivity.this.getApplicationContext());	
 			int[] allWidgetIds = appWidgetManager.getAppWidgetIds(ConfigActivity.this.getComponentName());
 			

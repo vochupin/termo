@@ -18,6 +18,7 @@ import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -31,6 +32,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import 	android.os.Process;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -218,13 +220,28 @@ public class UpdateService extends Service {
 	}
 
 	private void drawTemperatureAndTimestamp(int h, int w, Canvas canvas, Paint paint, TermoSample ts) {
-		if(ts.getTemperature() >= 0){
-			paint.setColor(Color.RED);
-		}else{
+//		if(ts.getTemperature() >= 0){
+//			paint.setColor(Color.RED);
+//		}else{
+//			paint.setColor(Color.BLUE);
+//		}
+
+		SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(this);
+		int foreColor = shPref.getInt("FORE_COLOR", -1);
+		if(foreColor == -1){
 			paint.setColor(Color.BLUE);
+		}else{
+			paint .setColor(foreColor);
 		}
+		
+		int foreAlpha = shPref.getInt("FORE_ALPHA", -1);
+		if(foreAlpha == -1){
+			paint.setAlpha(0);
+		}else{
+			paint .setAlpha(foreAlpha);
+		}
+
 		paint.setTypeface(Typeface.DEFAULT_BOLD);
-		paint.setAlpha(150);
 		paint.setTextSize(50);
 		String tstr = Float.toString(ts.getTemperature()) + "°";
 		float tw = paint.measureText(tstr);
