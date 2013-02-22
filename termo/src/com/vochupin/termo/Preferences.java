@@ -27,6 +27,7 @@ public class Preferences {
 	private int messageColor;
 	
 	private final SharedPreferences shPref;
+	private SharedPreferences.Editor editor;
 	
 	public Preferences(Context context){
 		shPref = PreferenceManager.getDefaultSharedPreferences(context);
@@ -46,6 +47,7 @@ public class Preferences {
 	}
 
 	public void setTempColdColor(int tempColdColor) {
+		putInt(TEMP_COLD_COLOR, tempColdColor);
 		this.tempColdColor = tempColdColor;
 	}
 
@@ -54,6 +56,7 @@ public class Preferences {
 	}
 
 	public void setTempWarmColor(int tempWarmColor) {
+		putInt(TEMP_WARM_COLOR, tempWarmColor);
 		this.tempWarmColor = tempWarmColor;
 	}
 
@@ -62,6 +65,7 @@ public class Preferences {
 	}
 
 	public void setBackgroundColor(int backgroundColor) {
+		putInt(BACKGROUND_COLOR, backgroundColor);
 		this.backgroundColor = backgroundColor;
 	}
 
@@ -70,6 +74,7 @@ public class Preferences {
 	}
 
 	public void setGridColor(int gridColor) {
+		putInt(GRID_COLOR, gridColor);
 		this.gridColor = gridColor;
 	}
 
@@ -78,6 +83,7 @@ public class Preferences {
 	}
 
 	public void setLinkColor(int linkColor) {
+		putInt(LINK_COLOR, linkColor);
 		this.linkColor = linkColor;
 	}
 
@@ -86,6 +92,7 @@ public class Preferences {
 	}
 
 	public void setDateColor(int dateColor) {
+		putInt(DATE_COLOR, dateColor);
 		this.dateColor = dateColor;
 	}
 
@@ -94,11 +101,8 @@ public class Preferences {
 	}
 
 	public void setMaxminColor(int maxminColor) {
+		putInt(MAXMIN_COLOR, maxminColor);
 		this.maxminColor = maxminColor;
-	}
-
-	public void commit(){
-		
 	}
 
 	public int getGraphColor() {
@@ -106,6 +110,7 @@ public class Preferences {
 	}
 
 	public void setGraphColor(int graphColor) {
+		putInt(GRAPH_COLOR, graphColor);
 		this.graphColor = graphColor;
 	}
 
@@ -114,6 +119,18 @@ public class Preferences {
 	}
 
 	public void setMessageColor(int messageColor) {
+		putInt(MESSAGE_COLOR, messageColor);
 		this.messageColor = messageColor;
 	}	
+
+	public void commit(){
+		if(editor == null) shPref.edit();
+		editor.commit();		
+	}
+
+	private void putInt(String key, int value){
+		if(editor == null) editor = shPref.edit();
+		editor.putInt(key, value);		
+	}
+
 }
