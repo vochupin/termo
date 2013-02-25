@@ -28,22 +28,25 @@ public class ConfigActivity extends Activity {
 	protected static final String TAG = ConfigActivity.class.getSimpleName();
 	private int appWidgetId;
 	private Button btnOk;
-	private Spinner spnPartName;
+	private Spinner spnColorName;
 
 	private ColorPickerView cpView; 
+	private Preferences prefs;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		prefs = new Preferences(this);
 
 		Intent intent = getIntent();
 		setResult(RESULT_CANCELED, intent);
 
 		setContentView(R.layout.activity_config);
 
-		spnPartName = (Spinner) findViewById(R.id.spnPartName);
-		fillPartNameSpinner();
-
+		spnColorName = (Spinner) findViewById(R.id.spnColorName);
+		fillColorNameSpinner();
+		
 		btnOk = (Button) findViewById(R.id.btnOk);
 		btnOk.setOnClickListener(btnOkClickListener);
 
@@ -57,42 +60,48 @@ public class ConfigActivity extends Activity {
 		cpView = new ColorPickerView(this);
 		cpView.setAlphaSliderVisible(true);
 		cpView.setAlphaSliderText("Прозрачность");
+		cpView.setColor(prefs.getColorByIndex(0));
+		
 		ViewGroup layout = (ViewGroup) findViewById(R.id.vllConfigLayout);
 		layout.addView(cpView);
 	}
 
-	private void fillPartNameSpinner(){
+	private void fillColorNameSpinner(){
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
-		adapter.add("123");
-		adapter.add("124");
-		adapter.add("125");
-		adapter.add("126");
+		for(Preferences.PartDescriptor pd : Preferences.partDescriptors){
+			adapter.add(pd.humanReadableName);
+		}
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-		spnPartName.setAdapter(adapter);
-		spnPartName.setPrompt("Заголовок");
-		spnPartName.setSelection(0);
-		spnPartName.setOnItemSelectedListener(new OnItemSelectedListener() {
-			@Override
-			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-				Toast.makeText(getBaseContext(), "Position = " + position, Toast.LENGTH_SHORT).show();
-			}
-			@Override
-			public void onNothingSelected(AdapterView<?> arg0) {
-			}
-		});    
+		spnColorName.setAdapter(adapter);
+		spnColorName.setPrompt("Цвета:");
+		spnColorName.setSelection(0);
+		spnColorName.setOnItemSelectedListener(spinnerClickListener);    
 	}
+	
+	private int oldPosition = 0;
+	
+	private OnItemSelectedListener spinnerClickListener = new OnItemSelectedListener() {
+		@Override
+		public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+			if(Const.DEBUG) Toast.makeText(getBaseContext(), "index = " + position, Toast.LENGTH_SHORT).show();
+			
+			prefs.setColorByIndex(oldPosition, cpView.getColor());
+			oldPosition = position;
+			
+			cpView.setColor(prefs.getColorByIndex(position));
+		}
+		@Override
+		public void onNothingSelected(AdapterView<?> arg0) {
+		}
+	};
 
 	private OnClickListener btnOkClickListener = new OnClickListener(){
 		@Override
 		public void onClick(View arg0) {
-
-			SharedPreferences shPref = PreferenceManager.getDefaultSharedPreferences(ConfigActivity.this);//getPreferences(MODE_PRIVATE);
-			SharedPreferences.Editor editor = shPref.edit();
-			int color = cpView.getColor();
-			editor.putInt("FORE_COLOR", color);
-			editor.commit();
-			Log.e(TAG, "written: " + color + " " + Color.alpha(color));
+			
+			prefs.setColorByIndex(oldPosition, cpView.getColor());
+			prefs.commit();
 
 			AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(ConfigActivity.this.getApplicationContext());	
 			int[] allWidgetIds = appWidgetManager.getAppWidgetIds(ConfigActivity.this.getComponentName());

@@ -12,7 +12,7 @@
         android:text="Готово" />
 
     <Spinner
-        android:id="@+id/spnPartName"
+        android:id="@+id/spnColorName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 

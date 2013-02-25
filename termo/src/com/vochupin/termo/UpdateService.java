@@ -159,7 +159,7 @@ public class UpdateService extends Service {
 			Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
 			Canvas canvas = new Canvas(bitmap);
 			
-			canvas.drawColor(0x55ffffff);
+			canvas.drawColor(prefs.getBackgroundColor());
 
 			Paint paint = new Paint();
 			paint.setAntiAlias(true);
@@ -191,7 +191,7 @@ public class UpdateService extends Service {
 						
 						drawGridValues(h, w, canvas, paint, ymax, ymin, prefs);
 						
-						setColor(paint, prefs.getBackgroundColor());
+						setColor(paint, prefs.getGraphColor());
 						
 						int oldx = Integer.MAX_VALUE; int oldy = Integer.MAX_VALUE;
 						for(TermoSample ts : tsamples){
@@ -235,7 +235,7 @@ public class UpdateService extends Service {
 		float tw = paint.measureText(tstr);
 		canvas.drawText(tstr, w / 2 - tw / 2, 25 + h / 2, paint);
 		
-		setColor(paint, prefs.getLinkColor());
+		setColor(paint, prefs.getDateColor());
 
 		paint.setTypeface(Typeface.DEFAULT);
 		paint.setTextSize(10);
@@ -248,7 +248,7 @@ public class UpdateService extends Service {
 	}
 
 	private void drawGridValues(int h, int w, Canvas canvas, Paint paint, float ymax, float ymin, Preferences prefs) {
-		setColor(paint, prefs.getGridColor());
+		setColor(paint, prefs.getMaxminColor());
 		
 		paint.setTextSize(8);
 		String maxTemp = Float.toString(ymax);
