@@ -61,7 +61,7 @@ public class Preferences {
 		shPref = PreferenceManager.getDefaultSharedPreferences(context);
 		colors[ID_TEMP_COLD_COLOR] = shPref.getInt(TEMP_COLD_COLOR, Color.BLUE);
 		colors[ID_TEMP_WARM_COLOR] = shPref.getInt(TEMP_WARM_COLOR, Color.RED);
-		colors[ID_BACKGROUND_COLOR] = shPref.getInt(BACKGROUND_COLOR, Color.LTGRAY);
+		colors[ID_BACKGROUND_COLOR] = shPref.getInt(BACKGROUND_COLOR, 0x55ffffff);
 		colors[ID_GRID_COLOR] = shPref.getInt(GRID_COLOR, Color.BLACK);
 		colors[ID_GRAPH_COLOR] = shPref.getInt(GRAPH_COLOR, Color.GREEN);
 		colors[ID_LINK_COLOR] = shPref.getInt(LINK_COLOR, Color.BLACK);
