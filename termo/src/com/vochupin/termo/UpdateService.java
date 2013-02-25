@@ -154,7 +154,7 @@ public class UpdateService extends Service {
 			
 			int h = awi.minHeight;
 			int w = awi.minWidth;
-			Log.i(TAG, "h: " + h + " w:" + w);
+			if(Const.DEBUG) Log.i(TAG, "h: " + h + " w:" + w);
 
 			Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
 			Canvas canvas = new Canvas(bitmap);
@@ -177,17 +177,17 @@ public class UpdateService extends Service {
 						
 						float ymax = -Float.MAX_VALUE; float ymin = Float.MAX_VALUE;
 						for(TermoSample ts : tsamples){
-							Log.i(TAG, "ts: " + ts);
+							if(Const.DEBUG) Log.i(TAG, "ts: " + ts);
 							if(ymax < ts.getTemperature()) ymax = ts.getTemperature();
 							if(ymin > ts.getTemperature()) ymin = ts.getTemperature();
 						}
 						float yspan = ymax - ymin;
-						Log.i(TAG, "ymax: " + ymax + " ymin: " + ymin + " yspan: " + yspan);
+						if(Const.DEBUG) Log.i(TAG, "ymax: " + ymax + " ymin: " + ymin + " yspan: " + yspan);
 						
 						float xmax = tsamples.get(0).getSampleTime().getTime();
 						float xmin = xmax - PERIOD_12H;
 						float xspan = xmax - xmin;
-						Log.i(TAG, "xmax: " + xmax + " xmin: " + xmin + " xspan: " + xspan);
+						if(Const.DEBUG) Log.i(TAG, "xmax: " + xmax + " xmin: " + xmin + " xspan: " + xspan);
 						
 						drawGridValues(h, w, canvas, paint, ymax, ymin, prefs);
 						
@@ -203,7 +203,7 @@ public class UpdateService extends Service {
 							canvas.drawCircle(x, y, 2, paint);
 							canvas.drawLine(oldx, oldy, x, y, paint);
 							
-							Log.i(TAG, "x: " + x + " y: " + y);
+							if(Const.DEBUG) Log.i(TAG, "x: " + x + " y: " + y);
 							oldx = x; oldy = y;
 						}
 						
