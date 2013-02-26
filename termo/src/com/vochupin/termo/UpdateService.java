@@ -161,8 +161,7 @@ public class UpdateService extends Service {
 			
 			canvas.drawColor(prefs.getBackgroundColor());
 
-			Paint paint = new Paint();
-			paint.setAntiAlias(true);
+			Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
 
 			drawGrid(h, w, canvas, paint, prefs);
 
