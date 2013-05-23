@@ -14,13 +14,9 @@ public class TermoWidget extends AppWidgetProvider {
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 
 		Log.i(TAG, "onUpdate method called");
-		// Get all ids
-		ComponentName thisWidget = new ComponentName(context, TermoWidget.class);
-		int[] allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
 
 		// Build the intent to call the service
 		Intent intent = new Intent(context.getApplicationContext(), UpdateService.class);
-		intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, allWidgetIds);
 
 		// Update the widgets via the service
 		context.startService(intent);

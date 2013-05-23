@@ -103,12 +103,8 @@ public class ConfigActivity extends Activity {
 			prefs.setColorByIndex(oldPosition, cpView.getColor());
 			prefs.commit();
 
-			AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(ConfigActivity.this.getApplicationContext());	
-			int[] allWidgetIds = appWidgetManager.getAppWidgetIds(ConfigActivity.this.getComponentName());
-
 			// Build the intent to call the service
 			Intent intent = new Intent(ConfigActivity.this.getApplicationContext(), UpdateService.class);
-			intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, allWidgetIds);
 
 			// Update the widgets via the service
 			ConfigActivity.this.startService(intent);

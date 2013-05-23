@@ -17,6 +17,8 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProviderInfo;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -115,7 +117,11 @@ public class UpdateService extends Service {
 		msg.arg1 = startId;
 
 		AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(UpdateService.this.getApplicationContext());
-		int[] allWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+
+		Context context = getApplicationContext();
+		ComponentName name = new ComponentName(context, TermoWidget.class);
+		int [] allWidgetIds = AppWidgetManager.getInstance(context).getAppWidgetIds(name);
+		
 		updateWidgets(appWidgetManager, allWidgetIds, "Запрос...", null);
 
 		Bundle bundle = new Bundle();
