@@ -46,8 +46,10 @@ public class UpdateService extends Service {
 	private static final String ALL_WIDGET_IDS = "allWidgetIds";
 	private static final long PERIOD_12H = 1000 * 60 * 60 * 12;
 	
-	private static final float HOR_MARGIN = 10;
-	private static final float VERT_MARGIN = 10;
+	private static float HOR_MARGIN = 10;
+	private static float VERT_MARGIN = 10;
+	
+	private static float MSG_TEXT_SIZE = 50;
 
 	private Looper mServiceLooper;
 	private ServiceHandler mServiceHandler;
@@ -161,6 +163,10 @@ public class UpdateService extends Service {
 			int h = awi.minHeight;
 			int w = awi.minWidth;
 			if(Const.DEBUG) Log.i(TAG, "h: " + h + " w:" + w);
+			
+			HOR_MARGIN = w / 40;
+			VERT_MARGIN = h / 10;
+			MSG_TEXT_SIZE = (float) (h * 0.5);
 
 			Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
 			Canvas canvas = new Canvas(bitmap);
@@ -235,16 +241,16 @@ public class UpdateService extends Service {
 		}
 
 		paint.setTypeface(Typeface.DEFAULT_BOLD);
-		paint.setTextSize(50);
+		paint.setTextSize(MSG_TEXT_SIZE);
 		String tstr = Float.toString(ts.getTemperature()) + "°";
 		float tw = paint.measureText(tstr);
-		canvas.drawText(tstr, w / 2 - tw / 2, 25 + h / 2, paint);
+		canvas.drawText(tstr, w / 2 - tw / 2, MSG_TEXT_SIZE / 2 + h / 2, paint);
 		
 		setColor(paint, prefs.getDateColor());
 
 		paint.setTypeface(Typeface.DEFAULT);
-		paint.setTextSize(10);
-		canvas.drawText(ts.getSampleTime().toLocaleString(), 10, h, paint);
+		paint.setTextSize(VERT_MARGIN);
+		canvas.drawText(ts.getSampleTime().toLocaleString(), 10, h - 1, paint);
 	}
 
 	private void setColor(Paint paint, int color) {
@@ -255,10 +261,10 @@ public class UpdateService extends Service {
 	private void drawGridValues(int h, int w, Canvas canvas, Paint paint, float ymax, float ymin, Preferences prefs) {
 		setColor(paint, prefs.getMaxminColor());
 		
-		paint.setTextSize(8);
+		paint.setTextSize(VERT_MARGIN);
 		String maxTemp = Float.toString(ymax);
 		float tw = paint.measureText(maxTemp);
-		canvas.drawText(maxTemp, w - HOR_MARGIN - tw, 8, paint);
+		canvas.drawText(maxTemp, w - HOR_MARGIN - tw, VERT_MARGIN - 1, paint);
 
 		String minTemp = Float.toString(ymin);
 		tw = paint.measureText(minTemp);
@@ -275,9 +281,9 @@ public class UpdateService extends Service {
 		if(message != null){
 			setColor(paint, prefs.getMessageColor());
 			
-			paint.setTextSize(40);
+			paint.setTextSize(MSG_TEXT_SIZE);
 			float tw = paint.measureText(message);
-			canvas.drawText(message, w/2  - tw / 2, h / 2 + 20, paint);
+			canvas.drawText(message, w/2  - tw / 2, h / 2 + MSG_TEXT_SIZE / 2, paint);
 		}
 	}
 
@@ -294,9 +300,9 @@ public class UpdateService extends Service {
 		}
 
 		setColor(paint, prefs.getLinkColor());
-		paint.setTextSize(10);
+		paint.setTextSize(VERT_MARGIN);
 		float tw = paint.measureText(TERMO_SERVER);
-		canvas.drawText(TERMO_SERVER, w / 2 - tw / 2, 10, paint);
+		canvas.drawText(TERMO_SERVER, w / 2 - tw / 2, VERT_MARGIN - 1, paint);
 	}
 
 	private void enableUpdateOnClick(int[] allWidgetIds,	RemoteViews remoteViews) {
